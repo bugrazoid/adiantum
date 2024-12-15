@@ -2,9 +2,10 @@ use core::marker::PhantomData;
 
 use cipher::{
     generic_array::GenericArray,
-    typenum::{self, IsGreaterOrEqual},
-    BlockDecrypt, BlockEncrypt, Key, KeyInit, KeyIvInit, KeySizeUser, StreamCipher, Unsigned,
+    typenum::{self, IsGreaterOrEqual, Unsigned},
+    BlockDecrypt, BlockEncrypt, BlockSizeUser, Key, KeyInit, KeyIvInit, KeySizeUser, StreamCipher,
 };
+use zeroize::Zeroize;
 
 use super::nh::NhPoly1305;
 
@@ -17,6 +18,15 @@ where
     block: BlockAlg,
     hash: NhPoly1305,
     phantom_data: PhantomData<StreamAlg>,
+}
+
+impl<StreamAlg, BlockAlg> Drop for Cipher<StreamAlg, BlockAlg>
+where
+    StreamAlg: KeySizeUser,
+{
+    fn drop(&mut self) {
+        self.key.zeroize();
+    }
 }
 
 impl<StreamAlg, BlockAlg> KeySizeUser for Cipher<StreamAlg, BlockAlg>
@@ -68,7 +78,7 @@ impl<StreamAlg, BlockAlg> Cipher<StreamAlg, BlockAlg>
 where
     StreamAlg: KeyIvInit + StreamCipher,
     StreamAlg::IvSize: IsGreaterOrEqual<typenum::U16>,
-    BlockAlg: BlockEncrypt,
+    BlockAlg: BlockEncrypt + BlockSizeUser<BlockSize = typenum::U16>,
 {
     /// `page` length must be in 0x10..=0x1000 range and divisible by 0x10
     /// `tweak` must be not greater 0x20
@@ -87,7 +97,7 @@ impl<StreamAlg, BlockAlg> Cipher<StreamAlg, BlockAlg>
 where
     StreamAlg: KeyIvInit + StreamCipher,
     StreamAlg::IvSize: IsGreaterOrEqual<typenum::U16>,
-    BlockAlg: BlockDecrypt,
+    BlockAlg: BlockDecrypt + BlockSizeUser<BlockSize = typenum::U16>,
 {
     /// `page` length must be in 0x10..=0x1000 and divisible by 0x10
     /// `tweak` must be not greater 0x20

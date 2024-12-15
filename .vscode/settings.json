@@ -7,5 +7,6 @@
         "unpadded",
         "serde",
         "ciphertext",
+        "zeroize",
     ]
 }

@@ -1,6 +1,6 @@
 [package]
 name = "adiantum"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "A Rust implementation of the Adiantum cipher, a fast encryption scheme optimized for mobile and embedded devices, designed by Google."
 license = "MIT"

@@ -9,6 +9,7 @@ categories = ["cryptography", "no-std", "embedded"]
 homepage = "https://github.com/vlad9486/adiantum"
 repository = "https://github.com/vlad9486/adiantum"
 readme = "README.md"
+rust-version = "1.61"
 
 [dev-dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -20,4 +21,5 @@ aes = { version = "0.8.4", default-features = false }
 [dependencies]
 cipher = { version = "0.4.4" }
 poly1305 = { version = "0.8.0", default-features = false }
+rustversion = "1.0.20"
 zeroize = { version = "1.8" }

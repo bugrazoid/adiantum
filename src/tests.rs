@@ -28,6 +28,7 @@ macro_rules! test_cipher_impl {
         #[test]
         fn $test_name() {
             let data = serde_json::from_str::<Vec<Vector>>(include_str!($test_data)).unwrap();
+            let mut i = 0;
             for Vector {
                 input: Input { key_hex, tweak_hex },
                 plaintext_hex,
@@ -42,16 +43,17 @@ macro_rules! test_cipher_impl {
                 let cipher = <$type>::new(GenericArray::from_slice(&key));
 
                 let mut msg = hex::decode(plaintext_hex).unwrap();
-                assert!((0x10..=0x1000).contains(&msg.len()), "Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}");
+                assert!((0x10..=0x1000).contains(&msg.len()), "1 Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}, {i}");
 
                 let tweak = hex::decode(tweak_hex).unwrap();
-                assert!(tweak.len() <= 0x20, "Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}");
+                assert!(tweak.len() <= 0x20, "2 Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}, {i}");
 
                 cipher.encrypt(&mut msg, &tweak);
-                assert_eq!(hex::encode(&msg), ciphertext_hex, "Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}");
+                assert_eq!(hex::encode(&msg), ciphertext_hex, "3 Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}, {i}");
 
                 cipher.decrypt(&mut msg, &tweak);
-                assert_eq!(hex::encode(&msg), plaintext_hex, "Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}");
+                assert_eq!(hex::encode(&msg), plaintext_hex, "4 Cipher: {test_cipher}, description {description}, plaintext_hex: {plaintext_hex}, ciphertext_hex: {ciphertext_hex}, {i}");
+                i += 1;
             }
         }
     };

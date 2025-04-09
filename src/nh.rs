@@ -108,10 +108,26 @@ impl NhPoly1305 {
         for (m_buf, msg) in m_buf.chunks_mut(32).zip(msg.chunks(0x400)) {
             m_buf.clone_from_slice(&nh(&self.key_nh, msg));
         }
-        let n = msg.len().div_ceil(0x400);
+        let n = div_ceil(msg.len(), 0x400);
         let m = self.m.clone().compute_unpadded(&m_buf[..(n * 0x20)]);
         u128::from_le_bytes(m.into())
     }
+}
+
+#[rustversion::before(1.73)]
+fn div_ceil(a: usize, b: usize) -> usize {
+    let d = a / b;
+    let r = a % b;
+    if r > 0 && b > 0 {
+        d + 1
+    } else {
+        d
+    }
+}
+
+#[rustversion::since(1.73)]
+fn div_ceil(a: usize, b: usize) -> usize {
+    a.div_ceil(b)
 }
 
 // TODO: load test vectors

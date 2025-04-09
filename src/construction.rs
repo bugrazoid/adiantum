@@ -83,7 +83,7 @@ where
     /// `page` length must be in 0x10..=0x1000 range and divisible by 0x10
     /// `tweak` must be not greater 0x20
     pub fn encrypt(&self, page: &mut [u8], tweak: &[u8]) {
-        let (l, r) = page.split_last_chunk_mut::<0x10>().unwrap();
+        let (l, r) = split_last_chunk_mut::<_, 0x10>(page).unwrap();
         let hash = self.hash.compute(l, tweak);
         *r = u128::from_le_bytes(*r).wrapping_add(hash).to_le_bytes();
         self.block.encrypt_block(GenericArray::from_mut_slice(r));
@@ -102,7 +102,7 @@ where
     /// `page` length must be in 0x10..=0x1000 and divisible by 0x10
     /// `tweak` must be not greater 0x20
     pub fn decrypt(&self, page: &mut [u8], tweak: &[u8]) {
-        let (l, r) = page.split_last_chunk_mut::<0x10>().unwrap();
+        let (l, r) = split_last_chunk_mut::<_, 0x10>(page).unwrap();
         let hash = self.hash.compute(l, tweak);
         *r = u128::from_le_bytes(*r).wrapping_add(hash).to_le_bytes();
         self.stream(r).apply_keystream(l);
@@ -110,4 +110,19 @@ where
         let hash = self.hash.compute(l, tweak);
         *r = u128::from_le_bytes(*r).wrapping_sub(hash).to_le_bytes();
     }
+}
+
+#[rustversion::before(1.77)]
+fn split_last_chunk_mut<T, const N: usize>(src: &mut [T]) -> Option<(&mut [T], &mut [T; N])> {
+    if src.len() < N {
+        None
+    } else {
+        let (init, last) = src.split_at_mut(src.len() - N);
+        Some((init, unsafe { &mut *(last.as_mut_ptr().cast::<[T; N]>()) }))
+    }
+}
+
+#[rustversion::since(1.77)]
+fn split_last_chunk_mut<T, const N: usize>(src: &mut [T]) -> Option<(&mut [T], &mut [T; N])> {
+    src.split_last_chunk_mut::<N>()
 }
